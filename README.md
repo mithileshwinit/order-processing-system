@@ -12,7 +12,7 @@ A backend system for processing e-commerce orders using Node.js, Express, and Mo
 ## Setup
 
 1. Copy `.env.example` to `.env`
-2. Update `MONGO_URI` to point at your MongoDB instance
+2. Update `MONGO_URI` to point at your MongoDB instance 
 3. Run `npm install`
 4. Start the server with `npm run dev`
 

@@ -52,6 +52,21 @@ Use `.env.example` as a starting point.
 - `npm run dev` - Run the server with `nodemon`
 - `npm test` - Run Jest tests
 
+## Project structure
+
+- `src/index.js` - Application entrypoint; starts MongoDB, background job, and Express server
+- `src/config/app.js` - Express app setup, middleware, and route mounting
+- `src/config/db.js` - MongoDB connection logic
+- `src/config/auth.js` - JWT authentication configuration and secrets
+- `src/routes/auth.js` - Authentication endpoint for token issuance
+- `src/routes/orders.js` - Order-related API route definitions
+- `src/controllers/authController.js` - Handles login and token generation
+- `src/controllers/orderController.js` - CRUD and status operations for orders
+- `src/models/Order.js` - Mongoose order schema, validation, and helpers
+- `src/middleware/authMiddleware.js` - JWT verification for protected routes
+- `src/jobs/orderStatusJob.js` - Periodic promotion of pending orders to processing
+- `tests/order.test.js` - Integration tests for order APIs and business behavior
+
 ## API Endpoints
 
 - `POST /api/auth/token` - Authenticate and receive JWT access and refresh tokens

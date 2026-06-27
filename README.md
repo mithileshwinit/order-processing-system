@@ -257,4 +257,4 @@ npm test
 ## Notes
 
 - The background status updater starts automatically when the app boots.
-- For local development, use a MongoDB URI such as `mongodb://localhost:27017/order-processing-system`.
+

@@ -1,17 +1,23 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../src/config/app');
 const Order = require('../src/models/Order');
 const { promotePendingOrders } = require('../src/jobs/orderStatusJob');
+const { ACCESS_TOKEN_SECRET } = require('../src/config/auth');
 
 let mongoServer;
+let authToken;
 
 describe('Order API', () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const uri = mongoServer.getUri();
     await mongoose.connect(uri);
+    
+    // Generate a valid JWT token for testing
+    authToken = jwt.sign({ username: 'admin' }, ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
   });
 
   afterEach(async () => {
@@ -26,6 +32,7 @@ describe('Order API', () => {
   test('creates an order and returns calculated total amount', async () => {
     const response = await request(app)
       .post('/orders')
+      .set('Authorization', `Bearer ${authToken}`)
       .send({
         customerName: 'Jane Doe',
         customerEmail: 'jane@example.com',
@@ -47,7 +54,10 @@ describe('Order API', () => {
       items: [{ productId: 'p1', name: 'Widget', quantity: 1, price: 20 }],
     });
 
-    const response = await request(app).get(`/orders/${order._id}`).expect(200);
+    const response = await request(app)
+      .get(`/orders/${order._id}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(200);
 
     expect(response.body.customerEmail).toBe('john@example.com');
     expect(response.body._id).toBe(String(order._id));
@@ -67,10 +77,15 @@ describe('Order API', () => {
       status: 'SHIPPED',
     });
 
-    const response = await request(app).get('/orders?status=pending').expect(200);
+    const response = await request(app)
+      .get('/orders?status=pending')
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(200);
 
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0].status).toBe('PENDING');
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].status).toBe('PENDING');
+    expect(response.body.pagination).toBeDefined();
+    expect(response.body.pagination.totalItems).toBe(1);
   });
 
   test('updates an order status', async () => {
@@ -82,6 +97,7 @@ describe('Order API', () => {
 
     const response = await request(app)
       .patch(`/orders/${order._id}/status`)
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ status: 'processing' })
       .expect(200);
 
@@ -96,7 +112,10 @@ describe('Order API', () => {
       status: 'PENDING',
     });
 
-    const cancelResponse = await request(app).delete(`/orders/${pendingOrder._id}`).expect(200);
+    const cancelResponse = await request(app)
+      .delete(`/orders/${pendingOrder._id}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(200);
     expect(cancelResponse.body.status).toBe('CANCELLED');
 
     const processingOrder = await Order.create({
@@ -106,7 +125,10 @@ describe('Order API', () => {
       status: 'PROCESSING',
     });
 
-    const rejectResponse = await request(app).delete(`/orders/${processingOrder._id}`).expect(400);
+    const rejectResponse = await request(app)
+      .delete(`/orders/${processingOrder._id}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(400);
     expect(rejectResponse.body.message).toBe('Only PENDING orders can be canceled');
   });
 

@@ -1,7 +1,10 @@
 const express = require('express');
 const ordersRouter = require('../routes/orders');
 const authRouter = require('../routes/auth');
+const healthRouter = require('../routes/health');
 const authenticateToken = require('../middleware/authMiddleware');
+const logger = require('../utils/logger');
+const AppError = require('../utils/AppError');
 
 const app = express();
 
@@ -10,6 +13,19 @@ const app = express();
  * This is required for the order API to receive structured payloads.
  */
 app.use(express.json());
+
+app.use((req, res, next) => {
+  logger.info('Incoming request', {
+    method: req.method,
+    url: req.originalUrl,
+  });
+  next();
+});
+
+/**
+ * Health check route used by deployment platforms and monitoring systems.
+ */
+app.use('/health', healthRouter);
 
 /**
  * Authentication routes are public and do not require an existing token.
@@ -27,7 +43,7 @@ app.use('/orders', authenticateToken, ordersRouter);
  * Returns a 404 response so clients clearly know the route is invalid.
  */
 app.use((req, res, next) => {
-  res.status(404).json({ message: 'Route not found' });
+  next(new AppError('Route not found', 404));
 });
 
 /**
@@ -40,8 +56,20 @@ app.use((req, res, next) => {
  * @param {import('express').NextFunction} next
  */
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
+  const statusCode = err.statusCode || err.status || 500;
+  const message = err.message || 'Internal server error';
+
+  logger.error('Request failed', {
+    statusCode,
+    message,
+    path: req.originalUrl,
+    method: req.method,
+  });
+
+  res.status(statusCode).json({
+    message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+  });
 });
 
 module.exports = app;

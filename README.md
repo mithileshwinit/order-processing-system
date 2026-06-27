@@ -5,7 +5,7 @@ A backend system for processing e-commerce orders using Node.js, Express, and Mo
 ## Features
 
 - Create, retrieve, list, update, and cancel orders
-- Order status life cycle with `PENDING`, `PROCESSING`, `SHIPPED`, and `CANCELLED`
+- Order status life cycle with `PENDING`, `PROCESSING`, `SHIPPED`, `DELIVERED`, and `CANCELLED`
 - Background job that updates pending orders every 5 minutes
 - Jest + Supertest integration tests
 

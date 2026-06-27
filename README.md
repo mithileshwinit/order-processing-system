@@ -30,9 +30,10 @@ A backend system for processing e-commerce orders using Node.js, Express, and Mo
 ## Setup
 
 1. Copy `.env.example` to `.env`
-2. Update `MONGO_URI` to point at MongoDB instance 
-3. Run `npm install`
-4. Start the server with `npm run dev`
+2. Update `MONGO_URI` to point at MongoDB instance
+3. Optionally set `PORT`, `AUTH_USERNAME`, `AUTH_PASSWORD`, `ACCESS_TOKEN_SECRET`, and `REFRESH_TOKEN_SECRET`
+4. Run `npm install`
+5. Start the server with `npm run dev`
 
 ## Environment variables
 
@@ -40,6 +41,10 @@ Use `.env.example` as a starting point.
 
 - `MONGO_URI` - MongoDB connection string
 - `PORT` - Application port (defaults to `3000`)
+- `AUTH_USERNAME` - JWT auth username (default: `admin`)
+- `AUTH_PASSWORD` - JWT auth password (default: `admin123`)
+- `ACCESS_TOKEN_SECRET` - Secret for signing access tokens
+- `REFRESH_TOKEN_SECRET` - Secret for signing refresh tokens
 
 ## Scripts
 
@@ -49,13 +54,34 @@ Use `.env.example` as a starting point.
 
 ## API Endpoints
 
-- `POST /orders` - Create a new order
-- `GET /orders` - List all orders
-- `GET /orders/:id` - Get order details by ID
-- `PATCH /orders/:id/status` - Update an order status
-- `DELETE /orders/:id` - Cancel an order
+- `POST /api/auth/token` - Authenticate and receive JWT access and refresh tokens
+- `POST /orders` - Create a new order (requires JWT access token)
+- `GET /orders` - List all orders (requires JWT access token)
+- `GET /orders/:id` - Get order details by ID (requires JWT access token)
+- `PATCH /orders/:id/status` - Update an order status (requires JWT access token)
+- `DELETE /orders/:id` - Cancel an order (requires JWT access token)
 
 ## Sample API Requests & Responses
+
+### Create auth token
+
+Request:
+```json
+POST /api/auth/token
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
+Response:
+```json
+200 OK
+{
+  "accessToken": "<jwt-access-token>",
+  "refreshToken": "<jwt-refresh-token>"
+}
+```
 
 ### Create order
 
@@ -70,6 +96,11 @@ POST /orders
     { "productId": "p2", "name": "Gadget", "quantity": 1, "price": 15 }
   ]
 }
+```
+
+Headers:
+```http
+Authorization: Bearer <jwt-access-token>
 ```
 
 Response:

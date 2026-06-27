@@ -16,14 +16,26 @@ async function startServer() {
     await connectDB();
     const interval = startOrderStatusJob();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
+    });
+
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(
+          `Port ${PORT} is already in use. Please free the port or set a different PORT in .env.`
+        );
+      } else {
+        console.error('Server error:', error);
+      }
+      clearInterval(interval);
+      process.exit(1);
     });
 
     process.on('SIGINT', () => {
       console.log('Shutting down gracefully...');
       clearInterval(interval);
-      process.exit(0);
+      server.close(() => process.exit(0));
     });
   } catch (error) {
     console.error('Failed to start server:', error);

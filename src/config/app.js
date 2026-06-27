@@ -1,5 +1,7 @@
 const express = require('express');
 const ordersRouter = require('../routes/orders');
+const authRouter = require('../routes/auth');
+const authenticateToken = require('../middleware/authMiddleware');
 
 const app = express();
 
@@ -10,10 +12,15 @@ const app = express();
 app.use(express.json());
 
 /**
- * Mounts the order routes at `/orders`.
- * All CRUD operations and status updates are handled by this router.
+ * Authentication routes are public and do not require an existing token.
  */
-app.use('/orders', ordersRouter);
+app.use('/api/auth', authRouter);
+
+/**
+ * Protect all order routes with JWT authentication.
+ * Clients must send a valid `Authorization: Bearer <token>` header.
+ */
+app.use('/orders', authenticateToken, ordersRouter);
 
 /**
  * Fallback route handler for unknown endpoints.

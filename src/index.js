@@ -1,15 +1,21 @@
 require('dotenv').config();
 const app = require('./config/app');
 const connectDB = require('./config/db');
+const { startOrderStatusJob } = require('./jobs/orderStatusJob');
 
 const PORT = process.env.PORT || 3000;
 
-const { startOrderStatusJob } = require('./jobs/orderStatusJob');
-
+/**
+ * Starts the Express API server after establishing a MongoDB connection.
+ *
+ * This entrypoint initializes application configuration, begins the
+ * background order status updater, and gracefully shuts down on SIGINT.
+ */
 async function startServer() {
   try {
     await connectDB();
     const interval = startOrderStatusJob();
+
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
     });
@@ -27,6 +33,12 @@ async function startServer() {
 
 startServer();
 
+/**
+ * Handles unhandled promise rejections at the process level to avoid
+ * silent failures and ensure the application exits cleanly.
+ *
+ * @param {unknown} reason - The rejection reason value.
+ */
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection:', reason);
   process.exit(1);

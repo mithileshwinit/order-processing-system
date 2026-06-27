@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 
+/**
+ * Order API routes.
+ * These endpoints provide CRUD functionality and status management for orders.
+ */
 router.post('/', orderController.createOrder);
 router.get('/', orderController.listOrders);
 router.get('/:id', orderController.getOrderById);

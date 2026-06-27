@@ -1,5 +1,13 @@
 const Order = require('../models/Order');
 
+/**
+ * Creates a new order document from the request body.
+ *
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ * @returns {Promise<void>}
+ */
 const createOrder = async (req, res, next) => {
   try {
     const { customerName, customerEmail, items } = req.body;
@@ -11,6 +19,14 @@ const createOrder = async (req, res, next) => {
   }
 };
 
+/**
+ * Retrieves a single order by its MongoDB ObjectId.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {Promise<void>}
+ */
 const getOrderById = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -23,6 +39,14 @@ const getOrderById = async (req, res, next) => {
   }
 };
 
+/**
+ * Lists orders with optional filtering by status.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {Promise<void>}
+ */
 const listOrders = async (req, res, next) => {
   try {
     const filter = {};
@@ -36,6 +60,17 @@ const listOrders = async (req, res, next) => {
   }
 };
 
+/**
+ * Updates the status of an existing order.
+ *
+ * The request body may use any case for `status`, but the value is normalized
+ * to uppercase before validation and persistence.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {Promise<void>}
+ */
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
@@ -61,6 +96,14 @@ const updateOrderStatus = async (req, res, next) => {
   }
 };
 
+/**
+ * Cancels an order if it is still in the PENDING state.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {Promise<void>}
+ */
 const cancelOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
